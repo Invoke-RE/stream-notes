@@ -57,7 +57,8 @@ def get_key_from_func(f):
         ci += 1
         if ci == needed_len:
             break
-
+	#TODO do this at the highest bv level and use our length
+	#heuristic to avoid all fingerprinting code.
     if len(insts) >= needed_len:
         if(check_ops(insts)):
             for inst in insts:
