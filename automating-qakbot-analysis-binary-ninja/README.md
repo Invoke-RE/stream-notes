@@ -1,8 +1,8 @@
-## Automating Qakbot Unpacking and Analysis with Binary Ninja
+# Automating Qakbot Unpacking and Analysis with Binary Ninja
 
-### Stream January 22 2024
+## Stream January 22 2024
 
-#### Binary Ninja Automation Development
+### Binary Ninja Automation Development
 
 * We used `binaryninja.highlevelil.HighLevelILFunction.visit` to recursively enumerate function instructions to find our target HLIL call parameter (encryption key) [https://api.binary.ninja/binaryninja.highlevelil-module.html#binaryninja.highlevelil.HighLevelILFunction.visit](https://api.binary.ninja/binaryninja.highlevelil-module.html#binaryninja.highlevelil.HighLevelILFunction.visit)
 
@@ -12,7 +12,7 @@
 
 Current state of our automation code: [extract_qakbot.py](scripts/extract_qakbot.py)
 
-#### Unpacking Qakbot and Analysis using Binary Ninja
+### Unpacking Qakbot and Analysis using Binary Ninja
 
 * We manually unpacked Qakbot by decrypting the first stage and then manually carved the subsequence PE stages, shown here:
 
