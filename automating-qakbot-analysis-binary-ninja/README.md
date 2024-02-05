@@ -28,3 +28,7 @@ We began analyzing the dynamic function resolution logic using Binary Ninja in Q
 `emit binja-decrypted-shellcode.bin | carve-pe | carve-pe > third-dll`
 * CTNordgaren cool tool for analyzing memory dumps: https://github.com/vswarte/memory-mirror
 * Smart-structures in Binary Ninja: https://docs.binary.ninja/guide/type.html#smart-structures-workflow
+* Discovered sample that ussing the same packer as Qakbot but uses indirect syscalls to map and execute a third-stage DLL `0d5af47bde7fdbb370d48611fd5800ec9be785aa77e1fca4badd4d2d3647447d` in memory. We ran into issues with being unable to import arbitrary type information for our shellcode in order to mark up the Windows strucutres.
+* Current state of our automation code: [extract_qakbot.py](scripts/extract_qakbot.py)
+* We made the following changes: [https://github.com/Invoke-RE/stream-notes/commit/8b6ec718610a00a47ead83c444a130276ef6c603#diff-f483a6a64ac50d93bbbf888e8bab17e7723c01a7da66e4b02f16f278cadc5837](https://github.com/Invoke-RE/stream-notes/commit/8b6ec718610a00a47ead83c444a130276ef6c603#diff-f483a6a64ac50d93bbbf888e8bab17e7723c01a7da66e4b02f16f278cadc5837)
+
