@@ -33,8 +33,8 @@ def xor_byte_data(data, key):
         rbytes += (b ^ key[i % len(key)]).to_bytes(1, byteorder='little')
     return rbytes
 
-def print_strings_table(strtable):
-    print(strtable.split(b'\x00')[0])
+def print_str_from_table(rstr):
+    print(rstr.split(b'\x00')[0])
 
 if __name__ == '__main__':
     bin_path = sys.argv[1]
@@ -47,4 +47,5 @@ if __name__ == '__main__':
     dec_str_offset = 0x113a
     dec_str_len = 0x5ab
     decrypted_str_table = xor_byte_data(ct, xor_key)
-    rstr = decrypted_str_table[dec_str_offset:dec_str_offset+dec_str_len]
+    print_str_from_table(decrypted_str_table[dec_str_offset:dec_str_offset+dec_str_len])
+	
