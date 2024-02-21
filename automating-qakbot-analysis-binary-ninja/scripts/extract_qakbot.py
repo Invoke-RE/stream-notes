@@ -78,26 +78,29 @@ def visitor(_a, inst, _c, _d) -> bool:
     if isinstance(inst, commonil.Localcall):
         if len(inst.params) > 1:
             if inst.tokens[0].text == '__builtin_strncpy':
-                print("Found target strncpy: {}".format(inst))
-                key = bytes(inst.params[1].tokens[1].text + "\x00", 'ascii') 
-                rsrc_inst_index = 4
-                rsrcid = None
-                rsrc_inst = list(inst.function.instructions)[rsrc_inst_index]
-                rsrcid = rsrc_inst.operands[1].value.value
-                path = re.sub(r"\.bndb", "", inst.function.view.file.filename)
-                rsrc_data = extract_resource(path, 1024, rsrcid)
-                print("Identified key: {} // Identified Resource ID: {}".format(key, rsrcid))
-                r = xor(key, rsrc_data)
-                carved = carve_pe(r)
-                if len(carved) >= 2:
-                    qakbot_dll = carved[1]
-                elif len(carved) == 1:
-                    qakbot_dll = carved[0]
-                fw = open("qakbot.dll", "wb")
-                fw.write(qakbot_dll)
-                fw.close()
-                found_pe = True
-                return False # Stop recursion (once we find a constant, don't recurse in to any sub-instructions (which there won't actually be any...))
+                try:
+                    print("Found target strncpy: {}".format(inst))
+                    key = bytes(inst.params[1].tokens[1].text + "\x00", 'ascii') 
+                    rsrc_inst_index = 4
+                    rsrcid = None
+                    rsrc_inst = list(inst.function.instructions)[rsrc_inst_index]
+                    rsrcid = rsrc_inst.operands[1].value.value
+                    path = re.sub(r"\.bndb", "", inst.function.view.file.filename)
+                    rsrc_data = extract_resource(path, 1024, rsrcid)
+                    print("Identified key: {} // Identified Resource ID: {}".format(key, rsrcid))
+                    r = xor(key, rsrc_data)
+                    carved = carve_pe(r)
+                    if len(carved) >= 2:
+                        qakbot_dll = carved[1]
+                    elif len(carved) == 1:
+                        qakbot_dll = carved[0]
+                    fw = open("qakbot.dll", "wb")
+                    fw.write(qakbot_dll)
+                    fw.close()
+                    found_pe = True
+                    return False # Stop recursion (once we find a constant, don't recurse in to any sub-instructions (which there won't actually be any...))
+                except:
+                    pass
 
 def xor(key, ct):
     r = bytes()

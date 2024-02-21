@@ -19,8 +19,8 @@ def decrypt_mod_name(module_ct_bytes, offset, xor_key):
     return rbytes.decode('ascii')
 
 def gen_dll_hash_table(dllname, hash_xor):
+    #print("Export functions for DLL: %s" % dllname)
     dbv = BinaryViewType['PE'].open("dependencies/{}".format(dllname))
-    dbv.update_analysis_and_wait()
     table = {}
     for symbol in dbv.get_symbols_of_type(SymbolType.FunctionSymbol):
         if symbol.binding is SymbolBinding.GlobalBinding or symbol.binding is SymbolBinding.WeakBinding:
@@ -33,7 +33,7 @@ def generate_header(resolved_hashes, hash_table_addr):
     rstr = bytes()
     rstr += b"struct hashes_%x {" % hash_table_addr
     for k, v in resolved_hashes.items():
-        rstr += bytes("int32_t {}; ".format(k, v), 'ascii')
+        rstr += bytes("int64_t {}; ".format(k, v), 'ascii')
     rstr += b"};"
     return rstr.decode('ascii')
 
@@ -48,7 +48,12 @@ def resolve_hash_tables(bv, module_ct_bytes, xor_key_bytes, hash_xor, import_res
         hash_table_size = (tokens[5].value >> 3) * 4
         
         dllname = decrypt_mod_name(module_ct_bytes, offset, xor_key_bytes)
-        print("Resolving hashes for: %s from hash table at: 0x%x with size: 0x%x" % (dllname, call_site.address, hash_table_size))
+        #print("-"*80)
+        #print("Resolving hashes for: %s from hash table at: 0x%x with size: 0x%x" % (dllname, call_site.address, hash_table_size))
+        #print("-"*80)
+        if hash_table_size > 0x1000:
+        #    print("Invalid hash table size: 0x%x at 0x%x" % (hash_table_size, hash_table_addr))
+            continue
         hash_table = bv.read(hash_table_addr, hash_table_size)
         hash_table_hashes = struct.unpack("I"*(hash_table_size//4), hash_table)
         dll_hash_table = gen_dll_hash_table(dllname, hash_xor)
@@ -57,11 +62,11 @@ def resolve_hash_tables(bv, module_ct_bytes, xor_key_bytes, hash_xor, import_res
             if chash in dll_hash_table:
                 found_func_name = dll_hash_table[chash]
             else:
-                print("Was not able to find hash: 0x%x in DLL: %s" % (chash, dllname))
+                #print("Was not able to find hash: 0x%x in DLL: %s" % (chash, dllname))
                 found_func_name = "unk_%x" % chash
 
             if found_func_name:
-                print("Found hash: 0x%x in DLL: %s" % (chash, dllname))
+                #print("Found hash: 0x%x in DLL: %s for function: %s" % (chash, dllname, found_func_name))
                 resolved_hashes[found_func_name] = chash
 
         print(generate_header(resolved_hashes, call_site.address))

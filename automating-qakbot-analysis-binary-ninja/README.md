@@ -30,5 +30,16 @@ We began analyzing the dynamic function resolution logic using Binary Ninja in Q
 * Smart-structures in Binary Ninja: https://docs.binary.ninja/guide/type.html#smart-structures-workflow
 * Discovered sample that ussing the same packer as Qakbot but uses indirect syscalls to map and execute a third-stage DLL `0d5af47bde7fdbb370d48611fd5800ec9be785aa77e1fca4badd4d2d3647447d` in memory. We ran into issues with being unable to import arbitrary type information for our shellcode in order to mark up the Windows strucutres.
 * Current state of our automation code: [extract_qakbot.py](scripts/extract_qakbot.py)
-* We made the following changes: [https://github.com/Invoke-RE/stream-notes/commit/8b6ec718610a00a47ead83c444a130276ef6c603#diff-f483a6a64ac50d93bbbf888e8bab17e7723c01a7da66e4b02f16f278cadc5837](https://github.com/Invoke-RE/stream-notes/commit/8b6ec718610a00a47ead83c444a130276ef6c603#diff-f483a6a64ac50d93bbbf888e8bab17e7723c01a7da66e4b02f16f278cadc5837)
+* We made the following changes: [https://github.com/Invoke-RE/stream-notes/commit/8b6ec718610a00a47ead83c444a130276ef6c603#diff-f483a6a64ac50d93bbbf888e8bab17e7723c01a7da66e4b02f16f278cadc5837](https://github.com/Invoke-RE/stream-notes/commit/8b6ec718610a00a47ead83c444a130276ef6c603#diff-f483a6a64ac50d93bb[bf888e8bab17e7723c01a7da66e4b02f16f278cadc5837)
 
+## Stream February 17
+
+* Fixed a bug with our unpacking script after we removed the intrinsic strncpy length check [extract_qakbot.py](samples/extract_qakbot.py)
+* Worked on dynamic hashing resolution automation, which decrypts DLL names, loads them on the fly using binary ninja, hashes their export functions and generates structs to be added to binary ninja [qakbot_obfuscation.py](samples/qakbot_obfuscation.py)
+* Imported generated structs and marked up binary ninja databass with struct pointers to resolve relatively accessed function names
+* Hit a few issues with the Types system while marking up Microsoft Cryptographic API function API constants/enums, shout out to Jordan [https://twitter.com/psifertex](@psifertex) for taking time from his Saturday to log these issues, also shout out to Sergei [https://twitter.com/herrcore](@herrcore) for looping him in:
+    * [https://github.com/Vector35/binaryninja-api/issues/5069](https://github.com/Vector35/binaryninja-api/issues/5069)
+    * [https://github.com/Vector35/binaryninja-api/issues/5070](https://github.com/Vector35/binaryninja-api/issues/5070)
+    * [https://github.com/Vector35/binaryninja-api/issues/5071](https://github.com/Vector35/binaryninja-api/issues/5071)
+* Wrote PoC script (needs to be more generic) for decrypting strings table used by QakBot [decrypt_aes.py](samples/decrypt_aes.py) with the help of the ZScaler blog [https://www.zscaler.com/blogs/security-research/tracking-15-years-qakbot-development](https://www.zscaler.com/blogs/security-research/tracking-15-years-qakbot-development)
+* Played with Binary Ninja Sidekick with Jordan's help and discovered it has really cool capabilities, like understanding the Binary Ninja API, the ability to reimplement code within a HLIL representation, the ability to write code based on context of specific functions, etc.
