@@ -31,3 +31,10 @@
 * Found Sliver's obfuscation mechanism which is Garble [https://github.com/burrowers/garble](https://github.com/burrowers/garble)
 * Found Sergei's deobfuscation techniques here: [https://web.archive.org/web/20230924191918/https://research.openanalysis.net/bandit/stealer/garble/go/obfuscation/2023/07/31/bandit-garble.html](https://web.archive.org/web/20230924191918/https://research.openanalysis.net/bandit/stealer/garble/go/obfuscation/2023/07/31/bandit-garble.html)
 * TODO: Setup emulation code like Sergei and write automation to identify target functions for emulation. Ideally this leads to deobfuscation of C2 addresses
+
+# Red Team Stream (June 10 2024)
+
+* Havoc will have certain code (i.e SMB) based on ifdefs so the config extractor has to accomodate for that
+* Wrote Havoc configuration structure parser with Binary Ninja [parse_havoc_generic.py](scripts/parse_havoc_generic.py)
+* Wrote a Binary Ninja script to assist with hash resolution markups [map_enums.py](scripts/map_enums.py)
+* Wrote a Yara rule to detect additional Havoc payloads on [unpac.me](unpac.me)
