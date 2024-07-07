@@ -38,3 +38,13 @@
 * Wrote Havoc configuration structure parser with Binary Ninja [parse_havoc_generic.py](scripts/parse_havoc_generic.py)
 * Wrote a Binary Ninja script to assist with hash resolution markups [map_enums.py](scripts/map_enums.py)
 * Wrote a Yara rule to detect additional Havoc payloads on [unpac.me](unpac.me)
+
+# IDA Hex Rays Scripting (June 21 2024)
+
+* 0x1C Blog on Lumma Stealer [https://www.0x1c.zip/0001-lummastealer/](https://www.0x1c.zip/0001-lummastealer/)
+* HexRays API Internals [https://www.elastic.co/security-labs/introduction-to-hexrays-decompilation-internals](https://www.elastic.co/security-labs/introduction-to-hexrays-decompilation-internals)
+* Copilot doesn't suck at writing IDAPython and the Hex Rays Python API
+* Visualizing Hex Rays Microcode: [https://github.com/gaasedelen/lucid](https://github.com/gaasedelen/lucid)
+* Pikabot blog deobfuscation using Microcode API: [https://www.zscaler.com/blogs/security-research/automating-pikabot-s-string-deobfuscation#ida-plugin](https://www.zscaler.com/blogs/security-research/automating-pikabot-s-string-deobfuscation#ida-plugin)
+* Plugin to visualize Hex Rays CTree objects (https://github.com/patois/HRDevHelper)[https://github.com/patois/HRDevHelper]
+* Code written on stream to walk identify Garble for loop, extract variables within for loop, fingerprint obfuscation method and reimplement specific subtraction method [walk_for.py](scripts/walk_for.py)
