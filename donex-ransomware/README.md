@@ -61,6 +61,35 @@
 </root>
 ```
 
+#### Sidekick Generated Cryptography Script
+```
+# Define the LLMOperator for detecting cryptography-related calls
+crypto_detector = LLMOperator("Identify cryptography-related calls in this function.")
+
+# Open an index to store the results
+with open_index(bv, "Cryptography Related Calls") as index:
+    # Iterate over all defined functions in the binary
+    for i, func in enumerate(iter_defined_functions(bv)):
+        # Notify progress
+        notify_progress(i, len(bv.functions), "Analyzing functions for cryptography-related calls")
+        
+        # Use the LLMOperator to analyze the function
+        result = crypto_detector(func)
+        
+        # If cryptography-related calls are found, add them to the index
+        if result.get("cryptography_related_calls"):
+            index.add_entry(func, {"Cryptography Related Calls": result["cryptography_related_calls"]})
+```
+
+#### Plaintext File Recovery PowerShell
+
+* [find_pt_files.ps1](find_pt_files.ps1)
+
+#### Ransomware Decryptor
+
+* [recover_stream.py](recover_stream.py)
+
 #### References
 
 * [https://dissect.ing/posts/donex/](https://dissect.ing/posts/donex/)
+* [https://www.crysearch.nl/files/research/recon2024_donex.pdf](https://www.crysearch.nl/files/research/recon2024_donex.pdf)
