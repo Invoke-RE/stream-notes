@@ -18,7 +18,7 @@
 
 Note: this was difficult using the IDAPython API, so we moved to using Binary Ninja to automate this decryption.
 
-```
+```python
 import binascii
 import struct
 
@@ -79,3 +79,150 @@ for callsite in callsites:
         print(f"Callsite different format: 0x{callsite.address:2x}")
 ```
 
+## Dec 22 BRC4 Deobfuscation Hex-Rays API
+
+* Global variable renaming based on resolved API funtion hash in function call
+
+Example:
+```
+CryptSetProperty_0 = mw_walk_hash_brc4_algo(BCryptSetProperty_0, qword_10040468);
+```
+
+Code to rename global variables:
+```python
+import idaapi
+import ida_hexrays
+import idc
+import ida_lines
+import random
+import string
+
+HASH_ENUM_INDEX = 0
+
+class ctree_visitor(ida_hexrays.ctree_visitor_t):
+    def __init__(self, cfunc):
+        ida_hexrays.ctree_visitor_t.__init__(self, ida_hexrays.CV_FAST)
+        self.cfunc = cfunc
+        self.func_name = "mw_walk_hash_brc4_algo"# API resolution function name
+    
+    def get_expr_name(self, expr):
+        name = expr.print1(None)
+        name = ida_lines.tag_remove(name)
+        name = ida_pro.str2user(name)
+        return name
+
+    def visit_expr(self, expr):
+        if expr.op == idaapi.cot_call:
+            if idc.get_name(expr.x.obj_ea) == self.func_name:
+                carg_1 = expr.a[HASH_ENUM_INDEX]
+                api_name = ida_lines.tag_remove(
+                    carg_1.cexpr.print1(None)
+                )  # Get API name
+                expr_parent = self.cfunc.body.find_parent_of(expr)  # Get node parent
+
+                # find asg node
+                while expr_parent.op != idaapi.cot_asg:
+                    expr_parent = self.cfunc.body.find_parent_of(expr_parent)
+
+                # The global variable assignment is of type cot_obj
+                # getting the name of this object was a giant pain but found
+                # an example that's done in get_expr_name
+                if expr_parent.cexpr.x.op == idaapi.cot_obj:
+                    lvariable_old_name = (
+                        self.get_expr_name(expr_parent.cexpr.x)
+                    )  # get name of variable
+                    print(f"Changing 0x{expr_parent.cexpr.x.obj_ea:2x} to {api_name}")
+                    idc.set_name(
+                        expr_parent.cexpr.x.obj_ea, api_name
+                    ) # rename variable
+        return 0
+
+
+def main():
+    cfunc = idaapi.decompile(idc.here())
+    v = ctree_visitor(cfunc)
+    v.apply_to(cfunc.body, None)
+
+
+main()
+```
+* Useful plugin for visualizing C-Tree API in IDA https://github.com/patois/HRDevHelper
+* Sleep obfuscation is used to refer to code that encrypts itself in memory when it's not being used
+
+## Inline String Handler
+
+```python
+import idaapi
+import ida_hexrays
+import idc
+import ida_lines
+import random
+import string
+import struct
+import re
+
+LEN_INDEX = 1
+
+class ctree_visitor(ida_hexrays.ctree_visitor_t):
+    def __init__(self, cfunc):
+        ida_hexrays.ctree_visitor_t.__init__(self, ida_hexrays.CV_FAST)
+        self.cfunc = cfunc
+        self.func_name = "mw_gen_obf_str"# Obfuscated str func name
+
+    def set_hexrays_comment(self, address, text):
+        '''
+        set comment in decompiled code
+        '''
+        cfunc = idaapi.decompile(address)
+        tl = idaapi.treeloc_t()
+        tl.ea = address
+        tl.itp = idaapi.ITP_SEMI
+        cfunc.set_user_cmt(tl, text)
+        cfunc.save_user_cmts() 
+
+    def visit_expr(self, expr):
+        if expr.op == idaapi.cot_call:
+            if idc.get_name(expr.x.obj_ea) == self.func_name:
+                call_addr = expr.ea
+                larg = expr.a[LEN_INDEX]
+                size = int(ida_lines.tag_remove(larg.print1(None)))
+                #print(f"Size for {ida_lines.tag_remove(expr.print1(None))} is {size}") 
+                args = list(expr.a)[LEN_INDEX+1:]
+                rstr = bytes()
+                # Each argument is of type carg_t which contains
+                # a pointer to a UTF-16 string, so we need to collect
+                # all addresses and read bytes from each address offset
+                # to reassemble each string
+                print(f"Enumerating args at address: 0x{call_addr:2x} with length: {size} at start index ")
+                for arg in args:
+                    try:
+                        if arg.obj_ea == 0xffffffffffffffff:
+                            if arg.x == None:
+                                continue
+                            tmp_str = idc.get_bytes(arg.x.obj_ea, 8)
+                            rstr += tmp_str.split(b"\x00\x00\x00")[0]
+                            print("0x%x" % arg.ea)
+                            #rstr += tmp_str
+                        else:
+                            tmp_str = idc.get_bytes(arg.obj_ea, 8)
+                            rstr += tmp_str.split(b"\x00\x00\x00")[0]
+                            print("0x%x" % arg.obj_ea)
+                            #rstr += tmp_str
+                    except:
+                        print(f"An exception occurred when processing: 0x{call_addr:2x}")
+                print(re.sub(b"\x00", b"", rstr))
+                final_str = re.sub(b"\x00", b"", rstr).decode('ascii')
+                self.set_hexrays_comment(call_addr, final_str)
+                #print((rstr+b"\x00\x00").decode('UTF-16'))
+                    
+        return 0
+
+
+def main():
+    cfunc = idaapi.decompile(idc.here())
+    v = ctree_visitor(cfunc)
+    v.apply_to(cfunc.body, None)
+
+
+main()
+```
