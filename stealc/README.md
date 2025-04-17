@@ -397,3 +397,88 @@ for addr, rstr in rstrs.items():
 [ScriptingProvider] Address: 0x404381 // PT string: b'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
 [ScriptingProvider] Address: 0x40439a // PT string: b'screenshot.jpg'
 ```
+
+## April 15 2025
+
+* eSentire IOC information https://github.com/eSentire/iocs/blob/main/Stealc/stealc_hwid.py
+* XOR with global renaming:
+```
+import re
+
+target_func = bv.get_symbol_by_raw_name('mw_decrypt_str').address
+
+def is_call(i, target_addr):
+    if(isinstance(i, HighLevelILCall) and i.dest.constant == target_addr):
+        return i
+
+def get_callers(target_func):
+    call_locations = []
+    for caller in bv.get_callers(target_func):
+        caller_add = caller.address
+        caller_func = bv.get_functions_containing(caller_add)[0]
+        for instr in list(caller_func.hlil.instructions):
+            for location in instr.traverse(is_call, target_func):
+                call_locations.append(location)
+
+    return call_locations
+
+def rename_global(address, name):
+    print(f"Renaming 0x{address:2x} to {name}")
+    bv.define_user_symbol(Symbol(
+        SymbolType.DataSymbol,
+        address,
+        name
+    ))
+
+def swap_unsafe(name):
+    sname = re.sub(r"[\\/:%]+", "_", name)
+    return sname
+
+rstrs = {}
+callers = get_callers(target_func)
+for caller in callers:
+    print(f"Decrypting at location: {caller.address:2x}")
+    if isinstance(caller.instr.dest, binaryninja.highlevelil.HighLevelILDeref):
+        destination_addr = caller.instr.dest.operands[0].constant
+        key = caller.params[1]
+        ct_len = caller.params[2]
+        ct_ptr = caller.params[0]
+    
+        xor = Transform['XOR']
+        ct = bv.read(ct_ptr.constant, ct_len.constant)
+        key = bv.read(key.constant, ct_len.constant)
+        pt = xor.encode(ct, {'key':key})
+        var_name = swap_unsafe(pt.decode('ascii'))
+        rename_global(destination_addr, var_name)
+        rstrs[caller.address] = pt
+
+for addr, rstr in rstrs.items():
+    print(f"Address: 0x{addr:2x} // PT string: {rstr}")
+    bv.set_comment_at(addr, rstr)
+```
+
+* Renaming globals from function resolution:
+```
+def rename_global(address, name):
+    print(f"Renaming 0x{address:2x} to {name}")
+    bv.define_user_symbol(Symbol(
+        SymbolType.DataSymbol,
+        address,
+        name
+    ))
+
+func = bv.get_function_at(0x00a36240)
+for bb in func.hlil:
+    for instr in bb:
+        if isinstance(instr, binaryninja.highlevelil.HighLevelILAssign):
+            if isinstance(instr.dest, binaryninja.highlevelil.HighLevelILDeref):
+                call_txt = instr.operands[1].tokens[0].text
+                if(call_txt == 'GetProcAddress'):
+                    print(f"Renaming 0x{instr.dest.operands[0].constant:2x} to {instr.operands[1].tokens[4]}")
+                    rename_global(instr.dest.operands[0].constant, instr.operands[1].tokens[4].text)
+                elif(call_txt == 'LoadLibraryA'):
+                    print(f"Renaming 0x{instr.dest.operands[0].constant:2x} to {instr.operands[1].tokens[2]}")
+                    rename_global(instr.dest.operands[0].constant, instr.operands[1].tokens[2].text)
+```
+
+* Hybrid-Analysis Run: https://www.hybrid-analysis.com/sample/18f53dd06e6d9d5dfe1b60c4834a185a1cf73ba449c349b6b43c753753256f62
