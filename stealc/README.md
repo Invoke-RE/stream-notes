@@ -486,12 +486,12 @@ for bb in func.hlil:
 ## April 22 2025
 
 Analyzed remaining stealer functionality. Stealc will steal:
-    * Steam
-    * Tox
-    * Outlook data
-    * Monero wallets
-    * Discord tokens
-    * Telegram data
-    * Pidgin data
+- Steam
+- Tox
+- Outlook data
+- Monero wallets
+- Discord tokens
+- Telegram data
+- Pidgin data
 
-In addition, it will take a screenshot and has the ability to download and execute additional files in %APPDATA%\Temp\[ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890]{10}.exe or DLL.
+In addition, it will take a screenshot and has the ability to download and execute additional files in `%APPDATA%\Temp\[ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890]{10}.exe` or DLL.
