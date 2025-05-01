@@ -482,3 +482,16 @@ for bb in func.hlil:
 ```
 
 * Hybrid-Analysis Run: https://www.hybrid-analysis.com/sample/18f53dd06e6d9d5dfe1b60c4834a185a1cf73ba449c349b6b43c753753256f62
+
+## April 22 2025
+
+Analyzed remaining stealer functionality. Stealc will steal:
+    * Steam
+    * Tox
+    * Outlook data
+    * Monero wallets
+    * Discord tokens
+    * Telegram data
+    * Pidgin data
+
+In addition, it will take a screenshot and has the ability to download and execute additional files in %APPDATA%\Temp\[ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890]{10}.exe or DLL.
